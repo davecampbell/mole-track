@@ -4,6 +4,18 @@ Motion-detection system for monitoring mole tunnel activity. A Raspberry Pi Zero
 
 ---
 
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/mole-rig-UI-01.png" width="220"/><br/><sub><b>Mole detected!</b><br/>Red alert banner fires after debounce threshold is exceeded</sub></td>
+    <td align="center"><img src="docs/mole-rig-UI-02.png" width="220"/><br/><sub><b>Detection mode selector</b><br/>Four metric families — per-frame, windowed, cumulative, odometer</sub></td>
+    <td align="center"><img src="docs/mole-rig-UI-03.png" width="220"/><br/><sub><b>Live motion output</b><br/>All four stat rows with active mode highlighted; per-point displacement list</sub></td>
+  </tr>
+</table>
+
+---
+
 ## Hardware
 
 | Component | Detail |
@@ -50,6 +62,10 @@ Frame rate: **3 fps** (sufficient for moles; conserves Pi Zero CPU).
 6. Triggered when the active metric ≥ threshold for `detection_debounce` consecutive frames
 7. If >50% of points lost → `TRACKING_LOST`; user prompted to recalibrate
 
+All four metric families update live in the app with the active mode highlighted:
+
+<img src="docs/mole-rig-UI-03.png" width="280" alt="Live motion output showing all stat rows"/>
+
 ---
 
 ## Project Structure
@@ -78,7 +94,10 @@ mole-track/
 
 ## Detection Modes
 
-Four metric families. Each has `max`, `mean`, and `total` variants.
+Four metric families. Each has `max`, `mean`, and `total` variants. The full set is accessible from the mode dropdown in the Settings section of the app.
+
+<img src="docs/mole-rig-UI-02.png" width="280" alt="Detection mode selector"/>
+
 
 ### Per-frame
 Displacement between the **previous frame and current frame** per point. Resets every frame.
