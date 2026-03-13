@@ -1,0 +1,15 @@
+[Unit]
+Description=Mole Track Detection Server
+After=network.target
+
+[Service]
+Type=simple
+User=dave
+WorkingDirectory=/home/dave/mole-track
+ExecStart=/usr/bin/python3 -m uvicorn mole_track.main:app --host 0.0.0.0 --port 8000 --log-level info
+Restart=on-failure
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,11 @@
+# On the Pi, prefer system packages (pre-compiled ARM binaries):
+#   sudo apt-get install python3-picamera2 python3-opencv python3-fastapi python3-uvicorn
+#
+# This file is for reference and dev-machine testing only.
+# picamera2 will only work on a Pi — it's import-guarded in camera.py.
+
+fastapi>=0.111
+uvicorn[standard]>=0.29
+opencv-python-headless>=4.9
+numpy>=1.26
+# picamera2>=0.3   # Pi only — install via apt

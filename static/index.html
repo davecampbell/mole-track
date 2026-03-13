@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Mole Track</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <h1>Mole Track</h1>
+    <span id="health-badge" class="badge badge--degraded">--</span>
+  </header>
+
+  <main>
+
+    <section class="card">
+      <h2>Camera</h2>
+      <div class="camera-wrapper" id="camera-wrapper">
+        <img id="camera-feed" src="/api/stream.mjpeg" alt="Camera feed">
+        <canvas id="overlay-canvas"></canvas>
+      </div>
+      <div class="button-row" style="margin-top:6px">
+        <button id="btn-toggle-stream" onclick="toggleStream()">Show normalized gray</button>
+      </div>
+      <p class="hint" id="camera-hint">Tap the image to place calibration anchors</p>
+    </section>
+
+    <section class="card">
+      <h2>Calibration</h2>
+      <p class="label">Anchors placed: <strong id="anchor-count">0</strong></p>
+      <div class="button-row">
+        <button id="btn-clear"     onclick="clearAnchors()">Clear</button>
+        <button id="btn-calibrate" onclick="sendCalibration()" disabled>Calibrate</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Detection</h2>
+
+      <div class="indicator indicator--idle" id="detection-indicator">Idle</div>
+
+      <div class="timer-row" id="timer-row" style="display:none">
+        <span class="timer-label">Active for</span>
+        <span id="detection-timer" class="timer">00:00</span>
+      </div>
+
+      <div class="button-row">
+        <button id="btn-start"   onclick="startDetection()" disabled>Start</button>
+        <button id="btn-stop"    onclick="stopDetection()"  disabled>Stop</button>
+        <button id="btn-silence" onclick="silenceAlert()"   style="display:none">Silence</button>
+      </div>
+
+      <!-- Per-frame aggregate stats — active mode highlighted -->
+      <div class="agg-stats" id="agg-stats" style="display:none">
+        <div class="agg-stat" id="agg-mean">
+          <span class="agg-label">Mean</span>
+          <strong id="stat-mean">--</strong>
+          <span class="agg-unit">px</span>
+        </div>
+        <div class="agg-stat" id="agg-max">
+          <span class="agg-label">Max</span>
+          <strong id="stat-max">--</strong>
+          <span class="agg-unit">px</span>
+        </div>
+        <div class="agg-stat" id="agg-total">
+          <span class="agg-label">Total</span>
+          <strong id="stat-total">--</strong>
+          <span class="agg-unit">px</span>
+        </div>
+        <div class="agg-stat">
+          <span class="agg-label">Points</span>
+          <strong id="stat-pts">--</strong>
+        </div>
+      </div>
+
+      <!-- Windowed accumulation stats — shown alongside per-frame row; active mode highlighted -->
+      <div class="agg-stats agg-stats--windowed" id="win-stats" style="display:none">
+        <div class="agg-stat agg-stat--header">
+          <span class="agg-label">Window</span>
+        </div>
+        <div class="agg-stat" id="win-mean">
+          <span class="agg-label">W·Mean</span>
+          <strong id="stat-win-mean">--</strong>
+          <span class="agg-unit">px</span>
+        </div>
+        <div class="agg-stat" id="win-max">
+          <span class="agg-label">W·Max</span>
+          <strong id="stat-win-max">--</strong>
+          <span class="agg-unit">px</span>
+        </div>
+        <div class="agg-stat" id="win-total">
+          <span class="agg-label">W·Total</span>
+          <strong id="stat-win-total">--</strong>
+          <span class="agg-unit">px</span>
+        </div>
+      </div>
+
+      <!-- Cumulative displacement stats (from Start) — active mode highlighted -->
+      <div class="agg-stats agg-stats--cumulative" id="cum-stats" style="display:none">
+        <div class="agg-stat agg-stat--header">
+          <span class="agg-label">Cumul.</span>
+        </div>
+        <div class="agg-stat" id="cum-mean">
+          <span class="agg-label">C·Mean</span>
+          <strong id="stat-cum-mean">--</strong>
+          <span class="agg-unit">px</span>
+        </div>
+        <div class="agg-stat" id="cum-max">
+          <span class="agg-label">C·Max</span>
+          <strong id="stat-cum-max">--</strong>
+          <span class="agg-unit">px</span>
+        </div>
+        <div class="agg-stat" id="cum-total">
+          <span class="agg-label">C·Total</span>
+          <strong id="stat-cum-total">--</strong>
+          <span class="agg-unit">px</span>
+        </div>
+      </div>
+
+      <!-- Odometer stats (path length since Start) — monotonically increasing -->
+      <div class="agg-stats agg-stats--odometer" id="odo-stats" style="display:none">
+        <div class="agg-stat agg-stat--header">
+          <span class="agg-label">Odo.</span>
+        </div>
+        <div class="agg-stat" id="odo-mean">
+          <span class="agg-label">O·Mean</span>
+          <strong id="stat-odo-mean">--</strong>
+          <span class="agg-unit">px</span>
+        </div>
+        <div class="agg-stat" id="odo-max">
+          <span class="agg-label">O·Max</span>
+          <strong id="stat-odo-max">--</strong>
+          <span class="agg-unit">px</span>
+        </div>
+        <div class="agg-stat" id="odo-total">
+          <span class="agg-label">O·Total</span>
+          <strong id="stat-odo-total">--</strong>
+          <span class="agg-unit">px</span>
+        </div>
+      </div>
+
+      <!-- Per-point displacement list -->
+      <div id="point-list" class="point-list"></div>
+    </section>
+
+    <section class="card">
+      <h2>Settings</h2>
+
+      <div class="setting-row">
+        <label for="sel-mode">Detection mode</label>
+        <select id="sel-mode">
+          <optgroup label="Per-frame">
+            <option value="max">Max (any single point)</option>
+            <option value="mean">Mean (average of all)</option>
+            <option value="total">Total (sum of all)</option>
+          </optgroup>
+          <optgroup label="Windowed accumulation">
+            <option value="windowed_max">Windowed max</option>
+            <option value="windowed_mean">Windowed mean</option>
+            <option value="windowed_total">Windowed total</option>
+          </optgroup>
+          <optgroup label="Cumulative (from Start)">
+            <option value="cumulative_max">Cumulative max</option>
+            <option value="cumulative_mean">Cumulative mean</option>
+            <option value="cumulative_total">Cumulative total</option>
+          </optgroup>
+          <optgroup label="Odometer (path length)">
+            <option value="odometer_max">Odometer max</option>
+            <option value="odometer_mean">Odometer mean</option>
+            <option value="odometer_total">Odometer total</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="setting-row">
+        <label for="inp-threshold">Threshold <span class="unit">px</span></label>
+        <input id="inp-threshold" type="number" min="0.5" max="200" step="0.5" value="8">
+      </div>
+
+      <div class="setting-row">
+        <label for="inp-debounce">Debounce <span class="unit">frames</span></label>
+        <input id="inp-debounce" type="number" min="1" max="20" step="1" value="3">
+      </div>
+
+      <div class="setting-row">
+        <label for="inp-window">Window <span class="unit">frames</span></label>
+        <input id="inp-window" type="number" min="2" max="60" step="1" value="10">
+      </div>
+
+      <div class="button-row" style="margin-top:10px">
+        <button id="btn-apply-settings" onclick="applySettings()">Apply</button>
+      </div>
+      <p class="hint" id="settings-hint"></p>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
