@@ -18,6 +18,8 @@ Motion-detection system for monitoring mole tunnel activity. A Raspberry Pi Zero
 
 ## Hardware
 
+<img src="docs/mole-track-mobile-rig.png" width="480" alt="Mobile rig — Pi camera, Pi Zero W, and USB power bank on a flexible tripod"/>
+
 | Component | Detail |
 |-----------|--------|
 | Pi Zero W | `molerig` · `192.168.86.30` · user `dave` |
