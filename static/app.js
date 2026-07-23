@@ -16,6 +16,7 @@ let detectionStartTime = null;   // Date.now() when first trigger fired
 let silenced           = false;  // user pressed Silence — no more beeps this session
 let currentThreshold   = 8.0;   // kept in sync with settings, used for per-point colouring
 let showingGray        = false;  // stream toggle — color vs CLAHE normalized gray
+let showPatchRects     = false;  // show LK detection-patch rectangles during calibration
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
@@ -68,6 +69,27 @@ function redrawAnchors() {
   const canvas = document.getElementById("overlay-canvas");
   const ctx    = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw LK patch rectangles when toggled on
+  if (showPatchRects && anchors.length > 0) {
+    const loresW = 320;
+    const loresH = 240;
+    const lkWin  = 15;  // must match detector.py LK_PARAMS winSize
+    const halfW  = (lkWin / 2) * (canvas.width  / loresW);
+    const halfH  = (lkWin / 2) * (canvas.height / loresH);
+
+    ctx.strokeStyle = "rgba(90, 200, 250, 0.7)";
+    ctx.lineWidth   = 1.5;
+    ctx.setLineDash([5, 4]);
+
+    anchors.forEach(({ x, y }) => {
+      const cx = x * canvas.width;
+      const cy = y * canvas.height;
+      ctx.strokeRect(cx - halfW, cy - halfH, halfW * 2, halfH * 2);
+    });
+
+    ctx.setLineDash([]);
+  }
 
   anchors.forEach(({ x, y }, i) => {
     const cx = x * canvas.width;
@@ -149,6 +171,13 @@ function toggleStream() {
   img.src = showingGray ? `${API}/stream-gray.mjpeg` : `${API}/stream.mjpeg`;
   btn.textContent = showingGray ? "Show color" : "Show normalized gray";
   btn.classList.toggle("btn--active", showingGray);
+}
+
+function togglePatches() {
+  showPatchRects = !showPatchRects;
+  const btn = document.getElementById("btn-toggle-patches");
+  btn.classList.toggle("btn--active", showPatchRects);
+  redrawAnchors();
 }
 
 // ─── API calls ────────────────────────────────────────────────────────────────
