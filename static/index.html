@@ -192,6 +192,11 @@
         <input id="inp-window" type="number" min="2" max="60" step="1" value="10">
       </div>
 
+      <div class="setting-row">
+        <label for="inp-patch">Patch size <span class="unit">px</span></label>
+        <input id="inp-patch" type="number" min="5" max="51" step="2" value="15">
+      </div>
+
       <div class="button-row" style="margin-top:10px">
         <button id="btn-apply-settings" onclick="applySettings()">Apply</button>
       </div>
@@ -200,6 +205,6 @@
 
   </main>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=patch-viz"></script>
 </body>
 </html>

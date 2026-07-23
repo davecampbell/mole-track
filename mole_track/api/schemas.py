@@ -60,6 +60,7 @@ class SettingsRequest(BaseModel):
     displacement_threshold: float | None = Field(default=None, gt=0.0)
     detection_debounce: int | None = Field(default=None, ge=1, le=20)
     accumulation_window: int | None = Field(default=None, ge=2, le=60)
+    patch_size: int | None = Field(default=None, ge=5, le=51, description="LK window size (odd px)")
 
 
 class SettingsResponse(BaseModel):
@@ -67,3 +68,4 @@ class SettingsResponse(BaseModel):
     displacement_threshold: float
     detection_debounce: int
     accumulation_window: int
+    patch_size: int

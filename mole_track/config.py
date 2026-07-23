@@ -17,6 +17,7 @@ class Settings:
     detection_debounce: int = int(os.getenv("DETECTION_DEBOUNCE", 3))
     min_points_ratio: float = float(os.getenv("MIN_POINTS_RATIO", 0.5))
     accumulation_window: int = int(os.getenv("ACCUMULATION_WINDOW", 10))  # frames for windowed modes
+    patch_size: int = int(os.getenv("PATCH_SIZE", 15))  # LK optical-flow window (odd, px)
 
     # Server
     host: str = os.getenv("HOST", "0.0.0.0")

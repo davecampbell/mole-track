@@ -47,6 +47,15 @@ Good calibration point placement:
 - Avoid the very edges of the frame (LK needs surrounding texture)
 - Place points on the string itself, not the bare soil, so there is actual texture to track
 
+### Checking patch coverage
+
+If you are using small flags or markers as detection targets, press **Show patches** to overlay the detection window on each anchor point. The red rectangles show exactly how much of each flag is inside the tracking patch. Adjust the **Patch size** in Settings if the rectangles are too small or too large for your flags.
+
+Good calibration point placement with flags:
+- Place each anchor directly on a flag
+- Adjust the patch size so the rectangle covers most of the flag but not much beyond it
+- Ensure adjacent patches do not overlap
+
 ---
 
 ## Step 2 — Start Detection
@@ -129,6 +138,7 @@ Adds up every pixel of movement since Start — like a car's trip odometer. Neve
 | **Threshold (px)** | `8` | Pixel displacement at lores scale (320×240). At this resolution 8 px ≈ a few millimetres of real movement depending on camera height. |
 | **Debounce (frames)** | `3` | Number of consecutive frames above threshold before alert fires. At 3 fps, debounce 3 = 1 second of sustained movement required. Lower = more sensitive, more false alerts. |
 | **Window (frames)** | `10` | Only used by windowed modes. At 3 fps, window 10 = a 3-second accumulation window. |
+| **Patch size (px)** | `15` | LK optical-flow window size (5–51, must be odd). Larger patches track coarser texture but are more robust. Adjust to match the size of your flags or detection targets. |
 
 Press **Apply** after any change. Settings take effect immediately without restarting detection.
 
@@ -170,7 +180,7 @@ If the indicator shows **Tracking Lost**, optical flow has lost too many calibra
 
 **Points drift or go wrong**
 - The lores frame rate is 3 fps; very fast motion can exceed LK's tracking range
-- Increase `winSize` in code (default 15×15 pixels) for coarser but more robust tracking, or reduce the distance between the camera and the subject
+- Increase `Patch size` in Settings (default 15×15 pixels) for coarser but more robust tracking, or reduce the distance between the camera and the subject
 
 **SSH drops while camera is recording**
 - Normal on Pi Zero — CPU spikes during camera operation cause SSH timeouts
