@@ -60,12 +60,6 @@ class MoleDetector:
       4. on_detection callback fires each frame with a DetectionEvent
     """
 
-    LK_PARAMS = dict(
-        winSize=(15, 15),
-        maxLevel=2,
-        criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03),
-    )
-
     def __init__(self, settings, camera):
         self.settings = settings
         self.camera = camera
@@ -86,6 +80,16 @@ class MoleDetector:
 
         self._thread: threading.Thread | None = None
         self._stop_event = threading.Event()
+
+    @property
+    def lk_params(self) -> dict:
+        """LK parameters derived from current settings (reads patch_size live)."""
+        ps = self.settings.patch_size
+        return dict(
+            winSize=(ps, ps),
+            maxLevel=2,
+            criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03),
+        )
 
     def set_keypoints(self, normalized_points: list[tuple[float, float]]) -> None:
         """
@@ -178,7 +182,7 @@ class MoleDetector:
             return DetectionEvent(state=DetectorState.TRACKING_LOST.value)
 
         next_pts, status, _ = cv2.calcOpticalFlowPyrLK(
-            prev, curr, self._current_pts, None, **self.LK_PARAMS
+            prev, curr, self._current_pts, None, **self.lk_params
         )
 
         # Restore original (N,1) boolean indexing — gives (M,2) shaped arrays.

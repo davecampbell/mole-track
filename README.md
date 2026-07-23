@@ -14,6 +14,17 @@ Motion-detection system for monitoring mole tunnel activity. A Raspberry Pi Zero
   </tr>
 </table>
 
+### Calibration patches
+
+Toggle **Show patches** in the Calibration section to overlay the Lucas-Kanade detection window on each anchor point. This shows exactly how much of a flag or target is covered by each tracking patch, helping you position flags and adjust the patch size for your setup.
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/frames-in-view.png" width="360"/><br/><sub><b>Patch rectangles on camera feed</b><br/>Red outlines show the LK detection window around each calibration point</sub></td>
+    <td align="center"><img src="docs/settings.png" width="360"/><br/><sub><b>Settings — patch size</b><br/>Adjust the LK window size (5–51 px) to match your flag or target</sub></td>
+  </tr>
+</table>
+
 ---
 
 ## Hardware
@@ -155,6 +166,7 @@ All settings are read from environment variables at startup. Defaults are suitab
 | `DETECTION_DEBOUNCE` | `3` | Consecutive frames above threshold to trigger |
 | `MIN_POINTS_RATIO` | `0.5` | Minimum fraction of points that must survive LK |
 | `ACCUMULATION_WINDOW` | `10` | Frames summed for windowed modes |
+| `PATCH_SIZE` | `15` | LK optical-flow window size (px, odd). Adjust to match flag/target size |
 | `LOG_LEVEL` | `info` | Python logging level |
 | `PORT` | `8000` | Server listen port |
 

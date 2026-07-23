@@ -15,7 +15,9 @@ let timerInterval      = null;   // 1-Hz UI timer updater
 let detectionStartTime = null;   // Date.now() when first trigger fired
 let silenced           = false;  // user pressed Silence — no more beeps this session
 let currentThreshold   = 8.0;   // kept in sync with settings, used for per-point colouring
+let currentPatchSize   = 15;    // LK window size in lores px, synced from settings
 let showingGray        = false;  // stream toggle — color vs CLAHE normalized gray
+let showPatchRects     = false;  // show LK detection-patch rectangles during calibration
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
@@ -68,6 +70,37 @@ function redrawAnchors() {
   const canvas = document.getElementById("overlay-canvas");
   const ctx    = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw LK patch rectangles when toggled on
+  if (showPatchRects && anchors.length > 0) {
+    const loresW = 320;
+    const loresH = 240;
+    const halfW  = (currentPatchSize / 2) * (canvas.width  / loresW);
+    const halfH  = (currentPatchSize / 2) * (canvas.height / loresH);
+
+    ctx.lineWidth = 2;
+
+    anchors.forEach(({ x, y }, i) => {
+      const cx = x * canvas.width;
+      const cy = y * canvas.height;
+
+      // Semi-transparent fill
+      ctx.fillStyle = "rgba(255, 59, 48, 0.15)";
+      ctx.fillRect(cx - halfW, cy - halfH, halfW * 2, halfH * 2);
+
+      // Solid outline
+      ctx.strokeStyle = "#ff3b30";
+      ctx.setLineDash([]);
+      ctx.strokeRect(cx - halfW, cy - halfH, halfW * 2, halfH * 2);
+
+      // Label showing patch size
+      ctx.fillStyle = "#ff3b30";
+      ctx.font = "bold 10px -apple-system, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillText(`${currentPatchSize}×${currentPatchSize}`, cx, cy + halfH + 3);
+    });
+  }
 
   anchors.forEach(({ x, y }, i) => {
     const cx = x * canvas.width;
@@ -149,6 +182,13 @@ function toggleStream() {
   img.src = showingGray ? `${API}/stream-gray.mjpeg` : `${API}/stream.mjpeg`;
   btn.textContent = showingGray ? "Show color" : "Show normalized gray";
   btn.classList.toggle("btn--active", showingGray);
+}
+
+function togglePatches() {
+  showPatchRects = !showPatchRects;
+  const btn = document.getElementById("btn-toggle-patches");
+  btn.classList.toggle("btn--active", showPatchRects);
+  redrawAnchors();
 }
 
 // ─── API calls ────────────────────────────────────────────────────────────────
@@ -395,7 +435,9 @@ async function loadSettings() {
     document.getElementById("inp-threshold").value = data.displacement_threshold;
     document.getElementById("inp-debounce").value  = data.detection_debounce;
     document.getElementById("inp-window").value    = data.accumulation_window;
+    document.getElementById("inp-patch").value     = data.patch_size;
     currentThreshold = data.displacement_threshold;
+    currentPatchSize = data.patch_size;
   } catch (e) {
     console.warn("Could not load settings:", e);
   }
@@ -406,6 +448,7 @@ async function applySettings() {
   const threshold  = parseFloat(document.getElementById("inp-threshold").value);
   const debounce   = parseInt(document.getElementById("inp-debounce").value, 10);
   const windowSize = parseInt(document.getElementById("inp-window").value, 10);
+  const patchSize  = parseInt(document.getElementById("inp-patch").value, 10);
   const hint       = document.getElementById("settings-hint");
 
   if (isNaN(threshold) || threshold <= 0) {
@@ -422,11 +465,13 @@ async function applySettings() {
         displacement_threshold: threshold,
         detection_debounce:     debounce,
         accumulation_window:    windowSize,
+        patch_size:             patchSize,
       }),
     });
     const data = await resp.json();
     currentThreshold = data.displacement_threshold;
-    hint.textContent = `Saved — ${data.detection_mode} mode, threshold ${data.displacement_threshold} px, debounce ${data.detection_debounce} frames, window ${data.accumulation_window} frames`;
+    currentPatchSize = data.patch_size;
+    hint.textContent = `Saved — ${data.detection_mode} mode, threshold ${data.displacement_threshold} px, debounce ${data.detection_debounce} frames, window ${data.accumulation_window} frames, patch ${data.patch_size} px`;
     setTimeout(() => { hint.textContent = ""; }, 3_000);
   } catch (e) {
     hint.textContent = "Failed to save settings.";

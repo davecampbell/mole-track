@@ -4,6 +4,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from starlette.responses import FileResponse
 
 from mole_track.api.routes import router
 from mole_track.camera import CameraManager
@@ -52,5 +53,19 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="mole-track", version="0.1.0", lifespan=lifespan)
 app.include_router(router)
 
-# Static files must be mounted AFTER API routes
-app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
+# Static files must be mounted AFTER API routes.
+# Custom subclass adds no-cache headers so the browser always loads fresh JS/CSS.
+class NoCacheStaticFiles(StaticFiles):
+    async def get_response(self, path, scope):
+        response = await super().get_response(path, scope)
+        if isinstance(response, FileResponse):
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+            if "etag" in response.headers:
+                del response.headers["etag"]
+            if "last-modified" in response.headers:
+                del response.headers["last-modified"]
+        return response
+
+app.mount("/", NoCacheStaticFiles(directory=str(STATIC_DIR), html=True), name="static")

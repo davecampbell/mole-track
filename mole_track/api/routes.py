@@ -145,6 +145,7 @@ async def get_settings(request: Request):
         displacement_threshold=cfg.displacement_threshold,
         detection_debounce=cfg.detection_debounce,
         accumulation_window=cfg.accumulation_window,
+        patch_size=cfg.patch_size,
     )
 
 
@@ -163,9 +164,13 @@ async def update_settings(request: Request, body: SettingsRequest):
     if body.accumulation_window is not None:
         cfg.accumulation_window = body.accumulation_window
         logger.info("Accumulation window → %d", cfg.accumulation_window)
+    if body.patch_size is not None:
+        cfg.patch_size = body.patch_size
+        logger.info("Patch size → %d", cfg.patch_size)
     return SettingsResponse(
         detection_mode=cfg.detection_mode,
         displacement_threshold=cfg.displacement_threshold,
         detection_debounce=cfg.detection_debounce,
         accumulation_window=cfg.accumulation_window,
+        patch_size=cfg.patch_size,
     )

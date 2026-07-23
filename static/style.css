@@ -342,6 +342,21 @@ button:not(:disabled):active {
   border: 1px solid #5ac8fa;
 }
 
+/* ─── Patches toggle button ──────────────────────────────── */
+
+#btn-toggle-patches {
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  padding: 7px 12px;
+  border-radius: 6px;
+}
+
+#btn-toggle-patches.btn--active {
+  background: #1a2a3a;
+  color: #5ac8fa;
+  border: 1px solid #5ac8fa;
+}
+
 /* ─── Settings ───────────────────────────────────────────── */
 
 .setting-row {
